@@ -48,7 +48,7 @@ data_transform = transforms.Compose([
 
 eval_dataset = TrainColorizerDataset(color_dir, gray_dir, transform=data_transform)
 
-trained_model = AutoModel.load_from_folder('models/4')
+trained_model = AutoModel.load_from_folder('models/5')
 device = "cpu" if torch.cuda.is_available() else "cpu"
 
 batch_size = 64
@@ -67,12 +67,35 @@ reconstructed_images = trained_model.reconstruct(grayscale_images).detach()
 #reconstructed_images = grayscale_images
 
 
-fig, axes = plt.subplots(nrows=4, ncols=8, figsize=(15, 8))
-for i in range(4):
-    for j in range(8):
-        index = i * 8 + j
-        ax = axes[i, j]
-        ax.imshow(reconstructed_images[index].permute(1, 2, 0))
-        ax.axis('off')
+num_images = 4
+num_rows = num_images
+num_cols = 4
+
+fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, figsize=(16, 4 * num_rows))
+
+for i in range(num_images):
+    # Display grayscale image
+    ax = axes[i, 0]
+    ax.imshow(grayscale_images[i].permute(1, 2, 0))
+    ax.axis('off')
+    
+    # Display reconstructed image
+    ax = axes[i, 1]
+    ax.imshow(reconstructed_images[i].permute(1, 2, 0))
+    ax.axis('off')
+    
+    # Display additional image set 1
+    ax = axes[i, 2]
+    ax.imshow(grayscale_images[i + 4].permute(1, 2, 0))
+    ax.axis('off')
+    
+    # Display additional image set 2
+    ax = axes[i, 3]
+    ax.imshow(reconstructed_images[i + 4].permute(1, 2, 0))
+    ax.axis('off')
+
+# Adjust the spacing between subplots
+plt.subplots_adjust(wspace=0.05, hspace=0.05)
+
 plt.tight_layout()
 plt.show()

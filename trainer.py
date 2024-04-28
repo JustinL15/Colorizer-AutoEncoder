@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 from pythae.models.nn import BaseEncoder, BaseDecoder
 from pythae.models.base.base_utils import ModelOutput
-
+from pythae.trainers.training_callbacks import WandbCallback
 
 class Encoder_Conv_VAE_ColorImage(BaseEncoder):
     def __init__(self, args):
@@ -152,6 +152,20 @@ training_config = BaseTrainerConfig(
 encoder = Encoder_Conv_VAE_ColorImage(model_config)
 decoder = Decoder_Conv_VAE_ColorImage(model_config)
 
+wandb = True
+
+callbacks = []
+if (wandb):
+    wandb_cb = WandbCallback() # Build the callback 
+    wandb_cb.setup(
+        training_config=training_config, # training config
+        model_config=model_config, # model config
+        project_name="your_wandb_project",
+        entity_name="your_wandb_entity", 
+        )
+
+callbacks.append(wandb_cb) # Add it to the callbacks list
+
 vae_model = VAE(
     model_config=model_config,
     encoder=encoder,
@@ -165,6 +179,7 @@ pipeline = TrainingPipeline(
 
 pipeline(
     train_data=train_dataset,
-    eval_data=eval_dataset
+    eval_data=eval_dataset,
+    callbacks=callbacks
 )
 
