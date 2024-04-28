@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 from pythae.models import VAEConfig
 from vae_model import VAE
-from pythae.trainers import BaseTrainerConfig
+from base_trainer import BaseTrainerConfig
 from pythae.pipelines.training import TrainingPipeline
 from torch.utils.data import Dataset
 from pythae.data.datasets import DatasetOutput
@@ -160,8 +160,8 @@ if (wandb):
     wandb_cb.setup(
         training_config=training_config, # training config
         model_config=model_config, # model config
-        project_name="your_wandb_project",
-        entity_name="your_wandb_entity", 
+        project_name="Colorizer",
+        entity_name="jlpri15fex", 
         )
 
 callbacks.append(wandb_cb) # Add it to the callbacks list
