@@ -637,7 +637,7 @@ class BaseTrainer:
         epoch_kld_loss /= len(self.train_loader)
 
         # Write KLD loss to a text file
-        with open("kld_loss.txt", "a") as file:
+        with open("C:/Users/jlpri/OneDrive/Documents/CSCI 335/Project+/kldloss.txt", "a") as file:
             file.write(f"Epoch {epoch}: KLD Loss = {epoch_kld_loss:.4f}\n")
 
         return epoch_loss

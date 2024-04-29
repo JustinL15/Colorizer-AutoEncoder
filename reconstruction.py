@@ -48,7 +48,7 @@ data_transform = transforms.Compose([
 
 eval_dataset = TrainColorizerDataset(color_dir, gray_dir, transform=data_transform)
 
-trained_model = AutoModel.load_from_folder('models/5')
+trained_model = AutoModel.load_from_folder('models/8')
 device = "cpu" if torch.cuda.is_available() else "cpu"
 
 batch_size = 64

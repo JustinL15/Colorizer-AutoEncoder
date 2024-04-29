@@ -135,7 +135,7 @@ eval_dataset = TrainColorizerDataset(ecolor_dir, ecolor_dir, transformC=data_tra
 
 model_config = VAEConfig(
     input_dim=(3, 128, 128),
-    latent_dim=64,
+    latent_dim=32,
     reconstruction_loss="mse"
 )
 
@@ -144,7 +144,7 @@ training_config = BaseTrainerConfig(
     learning_rate=1e-3,
     per_device_train_batch_size=64,
     per_device_eval_batch_size=64,
-    num_epochs=200,
+    num_epochs=400,
     optimizer_cls="AdamW",
     optimizer_params={"weight_decay": 0.05, "betas": (0.91, 0.99)},
     no_cuda=False
