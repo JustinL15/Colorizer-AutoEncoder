@@ -55,7 +55,7 @@ python reconstruction.py <model_path>
 
 - `<model_path>`: Path to the folder containing the model files.
 
-also included are pretrained models we used for the experiment
+Also included are oue models we trained for the experiment in the models folder.
 
 ## Author:
 
