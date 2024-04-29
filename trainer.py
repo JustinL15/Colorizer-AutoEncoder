@@ -1,19 +1,40 @@
+"""
+File: trainer.py
+Author: Justin Lin
+
+Description: This script trains a Variational Autoencoder (VAE) for image colorization. It defines the VAE architecture,
+             data loading pipeline, and training procedure.
+
+Dependencies: Ensure you have the necessary dependencies installed, including PyTorch, torchvision, PIL, and pythae.
+
+Usage:
+    python train_colorizer.py --num_epochs [NUM_EPOCHS] --latent_dim [LATENT_DIM]
+
+Parameters:
+    --num_epochs: Number of epochs for training.
+    --latent_dim: Dimension of the latent space.
+
+Example:
+    python train_colorizer.py --num_epochs 50 --latent_dim 64
+"""
+
+
 import os
-import numpy as np
+import argparse
 from PIL import Image
 from pythae.models import VAEConfig
 from vae_model import VAE
 from base_trainer import BaseTrainerConfig
 from pythae.pipelines.training import TrainingPipeline
-from torch.utils.data import Dataset
 from pythae.data.datasets import DatasetOutput
 from torchvision import datasets, transforms
 import torch
 import torch.nn as nn
 from pythae.models.nn import BaseEncoder, BaseDecoder
 from pythae.models.base.base_utils import ModelOutput
-from pythae.trainers.training_callbacks import WandbCallback
 
+
+# Define the encoder architecture for the VAE
 class Encoder_Conv_VAE_ColorImage(BaseEncoder):
     def __init__(self, args):
         BaseEncoder.__init__(self)
@@ -54,6 +75,7 @@ class Encoder_Conv_VAE_ColorImage(BaseEncoder):
         return output
 
 
+# Define the decoder architecture for the VAE
 class Decoder_Conv_VAE_ColorImage(BaseDecoder):
     def __init__(self, args):
         BaseDecoder.__init__(self)
@@ -113,73 +135,71 @@ class TrainColorizerDataset(datasets.ImageFolder):
             target=color_img
         )
 
-# Set up paths and data loading
-color_dir = 'train/color'
-gray_dir = 'train/gray'
+def main(args):
+    # Set up paths and data loading
+    color_dir = 'train/color'
+    gray_dir = 'train/gray'
 
-data_transformC = transforms.Compose([
-    transforms.Resize((128, 128), antialias=True),
-    transforms.ToTensor()
-])
+    data_transformC = transforms.Compose([
+        transforms.Resize((128, 128), antialias=True),
+        transforms.ToTensor()
+    ])
 
-data_transformG = transforms.Compose([
-    transforms.Resize((128, 128), antialias=True),
-    transforms.Grayscale(num_output_channels=3),
-    transforms.ToTensor()
-])
+    data_transformG = transforms.Compose([
+        transforms.Resize((128, 128), antialias=True),
+        transforms.Grayscale(num_output_channels=3),
+        transforms.ToTensor()
+    ])
 
-ecolor_dir = 'eval/color'
+    ecolor_dir = 'eval/color'
 
-train_dataset = TrainColorizerDataset(color_dir, color_dir, transformC=data_transformC, transformG=data_transformG)
-eval_dataset = TrainColorizerDataset(ecolor_dir, ecolor_dir, transformC=data_transformC, transformG=data_transformC)
+    train_dataset = TrainColorizerDataset(color_dir, color_dir, transformC=data_transformC, transformG=data_transformG)
+    eval_dataset = TrainColorizerDataset(ecolor_dir, ecolor_dir, transformC=data_transformC, transformG=data_transformC)
 
-model_config = VAEConfig(
-    input_dim=(3, 128, 128),
-    latent_dim=32,
-    reconstruction_loss="mse"
-)
+    model_config = VAEConfig(
+        input_dim=(3, 128, 128),
+        latent_dim=args.latent_dim,
+        reconstruction_loss="mse"
+    )
 
-training_config = BaseTrainerConfig(
-    output_dir='colorizer',
-    learning_rate=1e-3,
-    per_device_train_batch_size=64,
-    per_device_eval_batch_size=64,
-    num_epochs=400,
-    optimizer_cls="AdamW",
-    optimizer_params={"weight_decay": 0.05, "betas": (0.91, 0.99)},
-    no_cuda=False
-)
-encoder = Encoder_Conv_VAE_ColorImage(model_config)
-decoder = Decoder_Conv_VAE_ColorImage(model_config)
+    training_config = BaseTrainerConfig(
+        output_dir='models',
+        learning_rate=1e-3,
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=64,
+        num_epochs=args.num_epochs,
+        optimizer_cls="AdamW",
+        optimizer_params={"weight_decay": 0.05, "betas": (0.91, 0.99)},
+        no_cuda=False
+    )
+    encoder = Encoder_Conv_VAE_ColorImage(model_config)
+    decoder = Decoder_Conv_VAE_ColorImage(model_config)
 
-wandb = True
+    vae_model = VAE(
+        model_config=model_config,
+        encoder=encoder,
+        decoder=decoder
+    )
 
-callbacks = []
-if (wandb):
-    wandb_cb = WandbCallback() # Build the callback 
-    wandb_cb.setup(
-        training_config=training_config, # training config
-        model_config=model_config, # model config
-        project_name="Colorizer",
-        entity_name="jlpri15fex", 
-        )
+    pipeline = TrainingPipeline(
+        training_config=training_config,
+        model=vae_model
+    )
 
-callbacks.append(wandb_cb) # Add it to the callbacks list
+    # initialize training
+    pipeline(
+        train_data=train_dataset,
+        eval_data=eval_dataset
+    )
 
-vae_model = VAE(
-    model_config=model_config,
-    encoder=encoder,
-    decoder=decoder
-                )
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train VAE for image colorization")
+    parser.add_argument("--num_epochs", type=int, help="Number of epochs for training")
+    parser.add_argument("--latent_dim", type=int, help="Dimension of the latent space")
+    args = parser.parse_args()
 
-pipeline = TrainingPipeline(
-    training_config=training_config,
-    model=vae_model
-)
+    if not (args.num_epochs and args.latent_dim):
+        parser.print_usage()
+        exit()
 
-pipeline(
-    train_data=train_dataset,
-    eval_data=eval_dataset,
-    callbacks=callbacks
-)
-
+    main(args)

@@ -1,1 +1,0 @@
-{"name": "VAEConfig", "input_dim": [1, 150, 150], "latent_dim": 32, "uses_default_encoder": true, "uses_default_decoder": true, "reconstruction_loss": "mse"}
