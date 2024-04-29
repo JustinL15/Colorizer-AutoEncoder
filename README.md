@@ -53,7 +53,9 @@ To evaluate the trained VAE model on grayscale images and visualize the reconstr
 python reconstruction.py <model_path>
 
 
-- `<model_path>`: Path to the folder containing the pre-trained model files.
+- `<model_path>`: Path to the folder containing the model files.
+
+also included are pretrained models we used for the experiment
 
 ## Author:
 
